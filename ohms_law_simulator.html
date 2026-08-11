@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ohm's Law Simulator</title>
+  <style>
+    :root {
+      --bg-color: #0f0f11;
+      --card-bg: #18181c;
+      --accent-color: #3b82f6;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #27272a;
+      --danger-color: #ef4444;
+      --safe-color: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--text-main);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      background-color: #121215;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .readouts {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #121215;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .stat-value.safe {
+      color: var(--safe-color);
+    }
+
+    .stat-value.danger {
+      color: var(--danger-color);
+    }
+
+    .divider {
+      width: 1px;
+      height: 30px;
+      background-color: var(--border-color);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .control-label {
+      width: 110px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: #27272a;
+      outline: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s ease;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .num-input {
+      width: 80px;
+      background: #121215;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .num-input:focus {
+      border-color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Ohm's Law Simulator</h1>
+
+    <div class="canvas-container">
+      <canvas id="circuitCanvas"></canvas>
+    </div>
+
+    <div class="readouts">
+      <div class="stat-item">
+        <div class="stat-label">CURRENT (I)</div>
+        <div class="stat-value" id="valCurrent">0.0 mA</div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat-item">
+        <div class="stat-label">POWER (P)</div>
+        <div class="stat-value" id="valPower">0.0 mW</div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat-item">
+        <div class="stat-label">STATUS</div>
+        <div class="stat-value safe" id="valStatus">Safe</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label class="control-label" for="voltageSlider">Voltage (V)</label>
+        <input type="range" id="voltageSlider" class="slider" min="0" max="24" step="0.1" value="9">
+        <input type="number" id="voltageNum" class="num-input" min="0" max="24" step="0.1" value="9">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="resistanceSlider">Resistance (Ω)</label>
+        <input type="range" id="resistanceSlider" class="slider" min="10" max="10000" step="10" value="2230">
+        <input type="number" id="resistanceNum" class="num-input" min="10" max="10000" step="10" value="2230">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('circuitCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const voltageSlider = document.getElementById('voltageSlider');
+    const voltageNum = document.getElementById('voltageNum');
+    const resistanceSlider = document.getElementById('resistanceSlider');
+    const resistanceNum = document.getElementById('resistanceNum');
+
+    const valCurrent = document.getElementById('valCurrent');
+    const valPower = document.getElementById('valPower');
+    const valStatus = document.getElementById('valStatus');
+
+    let voltage = parseFloat(voltageSlider.value);
+    let resistance = parseFloat(resistanceSlider.value);
+    let electronOffset = 0;
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function syncInputs(e) {
+      if (e.target === voltageSlider) voltageNum.value = voltageSlider.value;
+      if (e.target === voltageNum) voltageSlider.value = voltageNum.value;
+      if (e.target === resistanceSlider) resistanceNum.value = resistanceSlider.value;
+      if (e.target === resistanceNum) resistanceSlider.value = resistanceSlider.value;
+
+      voltage = Math.max(0, parseFloat(voltageNum.value) || 0);
+      resistance = Math.max(10, parseFloat(resistanceNum.value) || 10);
+      updateReadouts();
+    }
+
+    voltageSlider.addEventListener('input', syncInputs);
+    voltageNum.addEventListener('input', syncInputs);
+    resistanceSlider.addEventListener('input', syncInputs);
+    resistanceNum.addEventListener('input', syncInputs);
+
+    function updateReadouts() {
+      const currentAmps = voltage / resistance;
+      const currentmA = currentAmps * 1000;
+      const powerWatts = voltage * currentAmps;
+      const powermW = powerWatts * 1000;
+
+      valCurrent.textContent = currentmA >= 1000 
+        ? (currentAmps).toFixed(2) + ' A' 
+        : currentmA.toFixed(1) + ' mA';
+
+      valPower.textContent = powerWatts >= 1 
+        ? powerWatts.toFixed(2) + ' W' 
+        : powermW.toFixed(1) + ' mW';
+
+      if (powerWatts > 0.25) {
+        valStatus.textContent = 'Overheated';
+        valStatus.className = 'stat-value danger';
+      } else {
+        valStatus.textContent = 'Safe';
+        valStatus.className = 'stat-value safe';
+      }
+    }
+
+    function drawCircuit() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const marginX = 120;
+      const marginY = 50;
+      const w = canvas.width - marginX * 2;
+      const h = canvas.height - marginY * 2;
+      const left = marginX;
+      const top = marginY;
+      const right = left + w;
+      const bottom = top + h;
+
+      // Draw Wires
+      ctx.strokeStyle = '#3f3f46';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.rect(left, top, w, h);
+      ctx.stroke();
+
+      // Battery Symbol (Left side)
+      const midY = top + h / 2;
+      ctx.fillStyle = '#121215';
+      ctx.fillRect(left - 5, midY - 25, 10, 50);
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      // Long line (+)
+      ctx.moveTo(left - 15, midY - 12);
+      ctx.lineTo(left + 15, midY - 12);
+      // Short line (-)
+      ctx.moveTo(left - 8, midY - 4);
+      ctx.lineTo(left + 8, midY - 4);
+      // Long line (+)
+      ctx.moveTo(left - 15, midY + 4);
+      ctx.lineTo(left + 15, midY + 4);
+      // Short line (-)
+      ctx.moveTo(left - 8, midY + 12);
+      ctx.lineTo(left + 8, midY + 12);
+      ctx.stroke();
+
+      // Voltage Tag
+      drawTag(left - 25, midY, `${voltage}V`, 'left');
+
+      // Resistor Symbol (Right side)
+      const resWidth = 32;
+      const resHeight = 60;
+      const resX = right - resWidth / 2;
+      const resY = midY - resHeight / 2;
+
+      ctx.fillStyle = '#6b4c3b';
+      ctx.beginPath();
+      ctx.roundRect(resX, resY, resWidth, resHeight, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#a16207';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Resistor Stripe Details
+      ctx.fillStyle = '#27272a';
+      for (let i = 1; i <= 3; i++) {
+        ctx.fillRect(resX, resY + i * 14, resWidth, 3);
+      }
+
+      // Resistance Tag
+      drawTag(right + 25, midY, `${resistance}Ω`, 'right');
+
+      // Animated Electrons (Blue Dots)
+      const currentAmps = voltage / resistance;
+      const speed = currentAmps * 80;
+      electronOffset = (electronOffset + speed) % 1000;
+
+      const perimeter = 2 * (w + h);
+      const dotCount = 12;
+
+      ctx.fillStyle = '#60a5fa';
+      for (let i = 0; i < dotCount; i++) {
+        const dist = (electronOffset + (i * (perimeter / dotCount))) % perimeter;
+        const pos = getPointOnRect(dist, left, top, w, h);
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(drawCircuit);
+    }
+
+    function getPointOnRect(d, x, y, w, h) {
+      if (d < w) return { x: x + d, y: y }; // Top edge (left to right)
+      d -= w;
+      if (d < h) return { x: x + w, y: y + d }; // Right edge (top to bottom)
+      d -= h;
+      if (d < w) return { x: x + w - d, y: y + h }; // Bottom edge (right to left)
+      d -= w;
+      return { x: x, y: y + h - d }; // Left edge (bottom to top)
+    }
+
+    function drawTag(x, y, text, align) {
+      ctx.font = 'bold 12px sans-serif';
+      const textWidth = ctx.measureText(text).width;
+      const padding = 8;
+      const boxWidth = textWidth + padding * 2;
+      const boxHeight = 24;
+
+      let boxX = align === 'left' ? x - boxWidth - 10 : x + 10;
+      let boxY = y - boxHeight / 2;
+
+      // Tag Background
+      ctx.fillStyle = '#27272a';
+      ctx.strokeStyle = '#3f3f46';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      // Tag Text
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, boxX + boxWidth / 2, y);
+    }
+
+    updateReadouts();
+    drawCircuit();
+  </script>
+</body>
+</html>
