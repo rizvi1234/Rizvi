@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ohm's Law Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .calculator-card {
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 360px;
+        }
+        .calculator-card h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #333333;
+            font-size: 1.25rem;
+        }
+        .calculator-card p {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #666666;
+            font-size: 0.9rem;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444444;
+            font-size: 0.875rem;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #0066cc;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0066cc;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #004999;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #eef6ff;
+            border-left: 4px solid #0066cc;
+            color: #004999;
+            font-weight: bold;
+            font-size: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h2>Ohm's Law Calculator</h2>
+    <p>Select what to calculate, leave it blank, and fill in the other two values.</p>
+
+    <div class="input-group">
+        <label for="target">Calculate:</label>
+        <select id="target" onchange="updateUI()">
+            <option value="V">Voltage (V)</option>
+            <option value="I">Current (I)</option>
+            <option value="R">Resistance (R)</option>
+        </select>
+    </div>
+
+    <div class="input-group" id="group-v" style="display: none;">
+        <label for="voltage">Voltage (V in Volts):</label>
+        <input type="number" id="voltage" step="any" placeholder="Enter Volts">
+    </div>
+
+    <div class="input-group" id="group-i">
+        <label for="current">Current (I in Amps):</label>
+        <input type="number" id="current" step="any" placeholder="Enter Amps">
+    </div>
+
+    <div class="input-group" id="group-r">
+        <label for="resistance">Resistance (R in Ohms):</label>
+        <input type="number" id="resistance" step="any" placeholder="Enter Ohms">
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+    function updateUI() {
+        const target = document.getElementById('target').value;
+        document.getElementById('group-v').style.display = target === 'V' ? 'none' : 'block';
+        document.getElementById('group-i').style.display = target === 'I' ? 'none' : 'block';
+        document.getElementById('group-r').style.display = target === 'R' ? 'none' : 'block';
+        document.getElementById('result').style.display = 'none';
+    }
+
+    function calculate() {
+        const target = document.getElementById('target').value;
+        const vInput = parseFloat(document.getElementById('voltage').value);
+        const iInput = parseFloat(document.getElementById('current').value);
+        const rInput = parseFloat(document.getElementById('resistance').value);
+        const resultDiv = document.getElementById('result');
+
+        let resultText = '';
+
+        if (target === 'V') {
+            if (isNaN(iInput) || isNaN(rInput)) {
+                resultText = 'Please enter valid numbers for Current and Resistance.';
+            } else {
+                const v = iInput * rInput;
+                resultText = `Voltage (V) = ${v.toFixed(2)} V`;
+            }
+        } else if (target === 'I') {
+            if (isNaN(vInput) || isNaN(rInput)) {
+                resultText = 'Please enter valid numbers for Voltage and Resistance.';
+            } else if (rInput === 0) {
+                resultText = 'Resistance cannot be zero.';
+            } else {
+                const i = vInput / rInput;
+                resultText = `Current (I) = ${i.toFixed(2)} A`;
+            }
+        } else if (target === 'R') {
+            if (isNaN(vInput) || isNaN(iInput)) {
+                resultText = 'Please enter valid numbers for Voltage and Current.';
+            } else if (iInput === 0) {
+                resultText = 'Current cannot be zero.';
+            } else {
+                const r = vInput / iInput;
+                resultText = `Resistance (R) = ${r.toFixed(2)} Ω`;
+            }
+        }
+
+        resultDiv.textContent = resultText;
+        resultDiv.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
